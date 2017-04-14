@@ -1,10 +1,17 @@
-import sys
+from collections import Counter
+from matplotlib import style
+from mpl_toolkits.mplot3d import Axes3D
+from pylab import *
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 import csv
-import urllib
+import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import pandas as pd
 import StringIO
-from sklearn.cluster import KMeans
-from collections import Counter
+import sys
+import urllib
+style.use("ggplot")
 
 def pct_rank_qcut(series, n):
   edges = pd.Series([float(i) / n for i in range(n + 1)])
@@ -51,6 +58,28 @@ def customer_segment(dataFrame):
   for cluster_number in range(cluster_num):
     print("Cluster {} contains {} samples".format(cluster_number, c[cluster_number]))
 
+  #visualize 3 dimension
+  plot_df = dataFrame[dataFrame.columns[1:5]]
+  color = ["b", "g", "r", "c", "m", "y", "k", "w"]
+  fig = figure()
+  ax = fig.gca(projection='3d')
+  for i in range(len(plot_df)):
+    ax.scatter(plot_df['recency'][i], plot_df['frequency'][i], plot_df['monetary'][i], c=color[plot_df['cluster'][i]], s=150)
+    label = '(%d, %d, %d)' % (plot_df['recency'][i], plot_df['frequency'][i], plot_df['monetary'][i])
+    ax.text(plot_df['recency'][i], plot_df['frequency'][i], plot_df['monetary'][i], label)
+
+  ax.scatter(centroids[:, 0],centroids[:, 1], centroids[:, 2], marker = "x", s=150, linewidths = 5, zorder = 100)
+  ax.set_xlabel('Recency (R)')
+  ax.set_ylabel('Frequency (F)')
+  ax.set_zlabel('Monetary (M)')
+  plt.show()
+
+  # visualize 2 dimension
+  pca_2 = PCA(2)
+  plot_columns = pca_2.fit_transform(dataFrame[dataFrame.columns[1:]])
+
+  plt.scatter(x=plot_columns[:,0], y=plot_columns[:,1], c=dataFrame["cluster"])
+  plt.show()
 
 def main(argv):
   data = read_data()
